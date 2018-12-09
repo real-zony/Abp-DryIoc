@@ -38,7 +38,8 @@ namespace Abp.Dependency
         /// Reference to the Castle Windsor Container.
         /// </summary>
         public IContainer IocContainer { get; private set; }
-        
+
+        /// <inheritdoc />
         public event RegisterTypeEventHandler RegisterTypeEventHandler;
 
         /// <summary>
@@ -62,7 +63,8 @@ namespace Abp.Dependency
             _conventionalRegistrars = new List<IConventionalDependencyRegistrar>();
             _waitRegisterInterceptor = new ConcurrentDictionary<Type, List<Type>>();
         }
-        
+
+        /// <inheritdoc />
         public void InitializeInternalContainer(IContainer dryIocContainer)
         {
             IocContainer = dryIocContainer;
@@ -74,9 +76,13 @@ namespace Abp.Dependency
             IocContainer.UseInstance(typeof(IIocResolver),this);
         }
 
-        protected virtual IWindsorContainer CreateContainer()
+        /// <inheritdoc />
+        public IResolverContext ChildContainer { get; private set; }
+
+        /// <inheritdoc />
+        public void InitializeChildContainer(IResolverContext container)
         {
-            return new WindsorContainer(new DefaultProxyFactory(ProxyGeneratorInstance));
+            ChildContainer = container;
         }
 
         /// <summary>
@@ -279,6 +285,9 @@ namespace Abp.Dependency
         /// <returns>The instance object</returns>
         public T Resolve<T>()
         {
+            if (ChildContainer == null) return IocContainer.Resolve<T>();
+            if (!ChildContainer.IsDisposed) return ChildContainer.Resolve<T>();
+
             return IocContainer.Resolve<T>();
         }
 

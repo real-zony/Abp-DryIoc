@@ -13,7 +13,6 @@ using Abp.AspNetCore.Mvc.Providers;
 using Abp.Json;
 using Abp.Modules;
 using DryIoc;
-using DryIoc.Microsoft.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;

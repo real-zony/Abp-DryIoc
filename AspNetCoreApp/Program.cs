@@ -19,6 +19,7 @@ namespace AspNetCoreApp
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseKestrel(op=>op.ListenAnyIP(5000))
                 .UseStartup<Startup>();
     }
 }
