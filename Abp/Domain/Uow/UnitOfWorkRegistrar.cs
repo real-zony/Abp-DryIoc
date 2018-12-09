@@ -27,7 +27,7 @@ namespace Abp.Domain.Uow
         {
             if (IsUnitOfWorkType(implementationType) || AnyMethodHasUnitOfWork(implementationType))
             {
-                iocManager.IocContainer.Intercept(serviceType,typeof(UnitOfWorkInterceptor));
+                iocManager.AddInterceptor(serviceType,typeof(UnitOfWorkInterceptor));
             }
         }
 
@@ -42,7 +42,7 @@ namespace Abp.Domain.Uow
 
             if (uowOptions.IsConventionalUowClass(implementationType.AsType()))
             {
-                iocManager.IocContainer.Intercept(serviceType,typeof(UnitOfWorkInterceptor));
+                iocManager.AddInterceptor(serviceType,typeof(UnitOfWorkInterceptor));
             }
         }
 

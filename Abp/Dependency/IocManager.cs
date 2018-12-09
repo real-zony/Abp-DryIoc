@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Castle.DynamicProxy;
 using Castle.MicroKernel;
 using Castle.MicroKernel.Registration;
@@ -9,6 +11,7 @@ using Castle.Windsor;
 using Castle.Windsor.Installer;
 using Castle.Windsor.Proxy;
 using DryIoc;
+using ImTools;
 
 namespace Abp.Dependency
 {
@@ -42,6 +45,7 @@ namespace Abp.Dependency
         /// List of all registered conventional registrars.
         /// </summary>
         private readonly List<IConventionalDependencyRegistrar> _conventionalRegistrars;
+        private readonly ConcurrentDictionary<Type, List<Type>> _waitRegisterInterceptor;
 
         static IocManager()
         {
@@ -56,6 +60,7 @@ namespace Abp.Dependency
         public IocManager()
         {
             _conventionalRegistrars = new List<IConventionalDependencyRegistrar>();
+            _waitRegisterInterceptor = new ConcurrentDictionary<Type, List<Type>>();
         }
         
         public void InitializeInternalContainer(IContainer dryIocContainer)
@@ -109,6 +114,63 @@ namespace Abp.Dependency
             if (config.InstallInstallers)
             {
                 this.Install(assembly);
+            }
+
+            // 这里使用 TPL 并行库的原因是因为存在大量仓储类型与应用服务需要注册，应最大限度利用 CPU 来进行操作
+            Parallel.ForEach(_waitRegisterInterceptor, keyValue =>
+            {
+                var proxyBuilder = new DefaultProxyBuilder();
+
+                Type proxyType;
+                if (keyValue.Key.IsInterface)
+                    proxyType = proxyBuilder.CreateInterfaceProxyTypeWithTargetInterface(keyValue.Key, ArrayTools.Empty<Type>(), ProxyGenerationOptions.Default);
+                else if (keyValue.Key.IsClass())
+                    proxyType = proxyBuilder.CreateClassProxyTypeWithTarget(keyValue.Key,ArrayTools.Empty<Type>(),ProxyGenerationOptions.Default);
+                else
+                    throw new ArgumentException($"类型 {keyValue.Value} 不支持进行拦截器服务集成。");
+
+                var decoratorSetup = Setup.DecoratorWith(useDecorateeReuse: true);
+                
+                // 使用 ProxyBuilder 创建好的代理类替换原有类型的实现
+                IocContainer.Register(keyValue.Key,proxyType,
+                    made: Made.Of(type=>type.GetConstructors().SingleOrDefault(c=>c.GetParameters().Length != 0),
+                        Parameters.Of.Type<IInterceptor[]>(request =>
+                        {
+                            var objects = new List<object>();
+                            foreach (var interceptor in keyValue.Value)
+                            {
+                                objects.Add(request.Container.Resolve(interceptor));
+                            }
+
+                            return objects.Cast<IInterceptor>().ToArray();
+                        }),
+                        PropertiesAndFields.Auto),
+                    setup: decoratorSetup);
+            });
+            
+            _waitRegisterInterceptor.Clear();
+        }
+
+
+        /// <inheritdoc />
+        public void AddInterceptor<TService, TInterceptor>() where TInterceptor : IInterceptor
+        {
+            AddInterceptor(typeof(TService),typeof(TInterceptor));
+        }
+
+        /// <inheritdoc />
+        public void AddInterceptor(Type serviceType, Type interceptorType)
+        {
+            if (_waitRegisterInterceptor.ContainsKey(serviceType))
+            {
+                var interceptors = _waitRegisterInterceptor[serviceType];
+                if (interceptors.Contains(interceptorType)) return;
+                
+                _waitRegisterInterceptor[serviceType].Add(interceptorType);
+            }
+            else
+            {
+                _waitRegisterInterceptor.TryAdd(serviceType, new List<Type> {interceptorType});
             }
         }
 

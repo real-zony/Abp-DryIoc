@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Abp.AspNetCore.Localization
 {
     public class AbpDefaultRequestCultureProvider : RequestCultureProvider
-    { 
+    {
         public override async Task<ProviderCultureResult> DetermineProviderCultureResult(HttpContext httpContext)
         {
             var settingManager = httpContext.RequestServices.GetRequiredService<ISettingManager>();

@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using Castle.DynamicProxy;
 
 namespace Abp.Dependency
 {
@@ -26,6 +27,20 @@ namespace Abp.Dependency
         /// <param name="assembly">Assembly to register</param>
         /// <param name="config">Additional configuration</param>
         void RegisterAssemblyByConvention(Assembly assembly, ConventionalRegistrationConfig config);
+
+        /// <summary>
+        /// 为指定的类型添加拦截器
+        /// </summary>
+        /// <typeparam name="TService">注册类型</typeparam>
+        /// <typeparam name="TInterceptor">拦截器类型</typeparam>
+        void AddInterceptor<TService, TInterceptor>() where TInterceptor : IInterceptor;
+        
+        /// <summary>
+        /// 为指定的类型添加拦截器
+        /// </summary>
+        /// <param name="serviceType">注册类型</param>
+        /// <param name="interceptorType">拦截器类型</param>
+        void AddInterceptor(Type serviceType,Type interceptorType);
 
         /// <summary>
         /// Registers a type as self registration.

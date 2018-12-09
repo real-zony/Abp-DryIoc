@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DryIoc.dll" Version="3.1.0-preview-06" />
+    <PackageReference Include="DryIoc.dll" Version="4.0.0-preview-01" />
     <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
