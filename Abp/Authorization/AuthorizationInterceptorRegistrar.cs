@@ -19,7 +19,7 @@ namespace Abp.Authorization
             {
                 if (ShouldIntercept(implementationType))
                 {
-                    iocManager.IocContainer.Intercept(implementationType,typeof(AuthorizationInterceptor));
+                    iocManager.AddInterceptor(type,typeof(AuthorizationInterceptor));
                 }
             };
         }

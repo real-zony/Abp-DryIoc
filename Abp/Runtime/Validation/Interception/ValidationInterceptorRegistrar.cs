@@ -14,7 +14,7 @@ namespace Abp.Runtime.Validation.Interception
             {
                 if (typeof(IApplicationService).GetTypeInfo().IsAssignableFrom(implementationType))
                 {
-                    iocManager.IocContainer.Intercept(implementationType,typeof(ValidationInterceptor));
+                    manager.AddInterceptor(type,typeof(ValidationInterceptor));
                 }
             };
         }

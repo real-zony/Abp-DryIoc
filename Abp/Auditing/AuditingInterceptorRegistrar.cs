@@ -21,7 +21,7 @@ namespace Abp.Auditing
 
                 if (ShouldIntercept(auditingConfiguration, implementationType))
                 {
-                    iocManager.IocContainer.Intercept(type,typeof(AuditingInterceptor));
+                    iocManager.AddInterceptor(type,typeof(AuditingInterceptor));
                 }
             };
         }

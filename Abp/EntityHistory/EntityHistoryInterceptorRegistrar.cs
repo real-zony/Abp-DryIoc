@@ -21,7 +21,7 @@ namespace Abp.EntityHistory
 
                 if (ShouldIntercept(entityHistoryConfiguration, implementationType))
                 {
-                    iocManager.IocContainer.Intercept(implementationType,typeof(EntityHistoryInterceptor));
+                    iocManager.AddInterceptor(type,typeof(EntityHistoryInterceptor));
                 }
             };
         }
